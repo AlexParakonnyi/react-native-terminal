@@ -3,7 +3,7 @@ import {StyleSheet, Text, Pressable, View, Image} from 'react-native';
 import Toast from './Toast';
 import InputBlock from './InputBlock';
 import TakeImage from './TakeImage';
-import Config from 'react-native-config';
+import {TOKEN} from '../.env.js';
 
 const CreateProduct = () => {
   const [name, setName] = useState('');
@@ -63,15 +63,16 @@ const CreateProduct = () => {
       data.append('price', price);
       data.append('image', image);
 
-      let res = await fetch('http://192.168.88.103:5000/api', {
+      let res = await fetch('http://192.168.88.103:5000/api/product', {
         method: 'post',
         body: data,
         headers: {
-          token: Config.TOKEN,
+          token: TOKEN,
         },
       });
 
       let responseJson = await res.json();
+      if (responseJson.error) console.log(responseJson.error);
       if (responseJson.status == 200) {
         console.log('Upload Successful');
         handleVisibleToast();

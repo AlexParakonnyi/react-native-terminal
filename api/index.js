@@ -1,9 +1,7 @@
 require('dotenv').config();
 const express = require('express');
-const {connect} = require('http2');
-const multer = require('multer');
-const path = require('path');
 const connectDB = require('./connectDB');
+const handleProduct = require('./product/handleProduct');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -22,22 +20,7 @@ app.use((req, res, next) => {
   }
 });
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname)); //Appending extension
-  },
-});
-
-const upload = multer({storage: storage});
-
-app.post('/api', upload.single('image'), (req, res) => {
-  const formData = req.body;
-  console.log('form data', formData);
-  res.json({status: 200});
-});
+app.post('/api/product', handleProduct);
 
 app.get('/api', (req, res) => {
   console.log('OK');

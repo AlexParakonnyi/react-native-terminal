@@ -60,6 +60,7 @@ buck-out/
 /ios/Pods/
 
 .env
+.env.js
 .flowconfig
 .buckconfig
 .editorconfig
