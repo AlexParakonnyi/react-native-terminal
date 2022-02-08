@@ -1,7 +1,12 @@
 const product = require('../models/productModel');
-const path = require('path');
-const fs = require('fs');
 const uploadFile = require('../uploadByMulter');
+
+const {
+  getFileInfo,
+  deleteFile,
+  renameFile,
+  resizeImage,
+} = require('./handleFile');
 
 const findProduct = async el => {
   try {
@@ -12,8 +17,16 @@ const findProduct = async el => {
   }
 };
 
-const createProduct = async req => {
-  const el = {...req.body, img: req.file.filename};
+const findImage = async img => {
+  try {
+    const result = await product.findOne({img});
+    return result;
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+const createProduct = async el => {
   try {
     const foundEl = await findProduct(el);
     if (foundEl) {
@@ -26,25 +39,34 @@ const createProduct = async req => {
       if (err) throw err;
     });
 
-    return {status: 200, error: false, success: true};
+    return {status: 200, error: false};
   } catch (e) {
     return {status: 404, error: e.message};
   }
 };
 
-const handleProduct = (req, res) => {
+const handleProduct = async (req, res) => {
   uploadFile(req, res, async err => {
     if (err) res.json({status: 200, error: err});
-    const result = await createProduct(req);
+
+    const fileInfo = getFileInfo(req);
+
+    const foundImage = await findImage(fileInfo.hashFullFilename);
+    if (foundImage) {
+      deleteFile(fileInfo.oldImgUrl);
+    } else {
+      await resizeImage(fileInfo.oldImgUrl, fileInfo.smallImgUrl);
+      renameFile(fileInfo.oldImgUrl, fileInfo.newImgUrl);
+    }
+
+    const el = {...req.body, img: fileInfo.hashFullFilename};
+
+    const result = await createProduct(el);
     res.json({...result});
 
     if (result.error) {
-      fs.unlink(
-        path.resolve(__dirname, '../', 'uploads/', req.file.filename),
-        err => {
-          if (err) console.log('Error inside unlink', err);
-        },
-      );
+      console.log(result.error);
+      deleteFile(fileInfo.hashFullFilename);
     }
   });
 };

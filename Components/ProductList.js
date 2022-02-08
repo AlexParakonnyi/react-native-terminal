@@ -11,10 +11,12 @@ const ProductList = () => {
   const {state, dispatch} = useContext(DataContext);
   const {createdProduct} = state;
   const flatListRef = useRef(null);
+  // console.log('@@', createdProduct);
 
   const fetchData = async () => {
     try {
       const res = await getData(`${URL}/api/product`, TOKEN);
+      // console.log(res.products);
       if (res.products) setData(res.products);
     } catch (err) {
       console.log(err);
@@ -28,14 +30,16 @@ const ProductList = () => {
   useEffect(() => {
     if (createdProduct) {
       fetchData();
-      const index = Math.floor((data.length - 1) / 3) - 1;
-      flatListRef.current.scrollToIndex({index});
+      if (data.length > 7) {
+        const index = Math.floor((data.length - 1) / 3) - 1;
+        flatListRef.current.scrollToIndex({index});
+      }
       dispatch({type: Actions.REMOVE_CREATE_PRODUCT, payload: {}});
     }
   }, [createdProduct]);
 
   const handleClick = item => {
-    console.log(item);
+    // console.log(item);
     const newArrayData = data.map(e => {
       if (e._id === item._id) {
         const currentSelected = item.selected;
@@ -48,13 +52,12 @@ const ProductList = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View>
       <FlatList
         ref={flatListRef}
         numColumns={3}
         keyExtractor={item => item._id}
         data={data}
-        style={styles.list}
         renderItem={item => (
           <ProductItem item={item} handleClick={handleClick} />
         )}></FlatList>

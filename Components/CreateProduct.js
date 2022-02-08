@@ -104,7 +104,6 @@ const CreateProduct = ({pagerViewRef}) => {
         handleVisibleToast();
         clearfields();
         setCreateProduct();
-        console.log('333', pagerViewRef);
         pagerViewRef.current?.setPage(0);
       }
     } else {

@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, Text, View, Image, TouchableOpacity} from 'react-native';
-import {URL} from '../.env.js';
+import {URL, SMALL_IMAGE_URL} from '../.env.js';
 
 const ProductItem = ({item, handleClick}) => {
   const {img, name, price, number, selected} = item.item;
@@ -17,7 +17,7 @@ const ProductItem = ({item, handleClick}) => {
         <View style={styles.imageContainer}>
           <Image
             style={styles.image}
-            source={{uri: `${URL}/img/${img}`}}></Image>
+            source={{uri: `${URL}${SMALL_IMAGE_URL}${img}`}}></Image>
         </View>
         <Text style={styles.name}>{name}</Text>
         <Text style={styles.secondInfo}>{`Цена: ${price}`}</Text>
