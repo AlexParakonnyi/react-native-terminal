@@ -1,17 +1,28 @@
-import React, {useState, useEffect} from 'react';
-import {StyleSheet, Text, Pressable, View, Image} from 'react-native';
+import React, {useState, useEffect, useContext} from 'react';
+import {
+  StyleSheet,
+  Text,
+  Pressable,
+  TouchableOpacity,
+  View,
+  Image,
+} from 'react-native';
 import Toast from './Toast';
 import InputBlock from './InputBlock';
 import TakeImage from './TakeImage';
-import {TOKEN} from '../.env.js';
+import {TOKEN, URL} from '../.env.js';
+import {DataContext} from '../Store/DataProvider';
+import Actions from '../Store/Actions';
 
-const CreateProduct = () => {
+const CreateProduct = ({pagerViewRef}) => {
   const [name, setName] = useState('');
   const [number, setNumber] = useState(null);
   const [price, setPrice] = useState(null);
   const [singleFile, setSingleFile] = useState(null);
   const [dialog, setDialog] = useState(false);
   const [visibleToast, setVisibleToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const {state, dispatch} = useContext(DataContext);
 
   const handleToast = () => setTimeout(() => setVisibleToast(false), 300);
 
@@ -45,8 +56,19 @@ const CreateProduct = () => {
     setSingleFile(value);
   };
 
+  const clearfields = () => {
+    handlerName('');
+    handlerNumber(null);
+    handlerPrice(null);
+    handlerFile(null);
+  };
+
+  const setCreateProduct = () => {
+    dispatch({type: Actions.CREATE_PRODUCT, payload: {}});
+  };
+
   const sendData = async () => {
-    console.log('SENDING', singleFile != null);
+    // console.log('SENDING', singleFile != null);
     // // Check if any file is selected or not
     if (singleFile != null) {
       //   // If file selected then create FormData
@@ -63,7 +85,7 @@ const CreateProduct = () => {
       data.append('price', price);
       data.append('image', image);
 
-      let res = await fetch('http://192.168.88.103:5000/api/product', {
+      let res = await fetch(`${URL}/api/product`, {
         method: 'post',
         body: data,
         headers: {
@@ -72,10 +94,18 @@ const CreateProduct = () => {
       });
 
       let responseJson = await res.json();
-      if (responseJson.error) console.log(responseJson.error);
-      if (responseJson.status == 200) {
-        console.log('Upload Successful');
+      if (responseJson.error) {
+        console.log(responseJson.error);
+        setToastMessage(responseJson.error);
         handleVisibleToast();
+      } else if (responseJson.status == 200) {
+        console.log('Upload Successful');
+        setToastMessage('Товар успешно сохранен');
+        handleVisibleToast();
+        clearfields();
+        setCreateProduct();
+        console.log('333', pagerViewRef);
+        pagerViewRef.current?.setPage(0);
       }
     } else {
       //   // If no file selected the show alert
@@ -109,7 +139,7 @@ const CreateProduct = () => {
 
   return (
     <>
-      <Toast visible={visibleToast} message="Товар успешно сохранен" />
+      <Toast visible={visibleToast} message={toastMessage} />
       <Text style={styles.header}>Создание нового товара</Text>
       {schema.map(val => {
         return (
@@ -123,14 +153,18 @@ const CreateProduct = () => {
         );
       })}
       <View style={styles.panelControl}>
-        <Pressable style={styles.addImage} onPress={openDialog}>
+        <TouchableOpacity
+          style={styles.addImage}
+          onPress={openDialog}
+          activeOpacity={0.5}>
           <Text style={styles.buttonText}>Добавить фото</Text>
-        </Pressable>
-        <Pressable
+        </TouchableOpacity>
+        <TouchableOpacity
           style={styles.deleteButton}
-          onPress={() => handlerFile(null)}>
+          onPress={() => handlerFile(null)}
+          activeOpacity={0.5}>
           <Text style={styles.buttonText}>Отменить фото</Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
       <View style={styles.imageView}>
         <Image source={singleFile} style={styles.image} />
@@ -144,19 +178,18 @@ const CreateProduct = () => {
         styles={styles}
       />
       <View style={styles.panelControl}>
-        <Pressable style={styles.button} onPress={sendData}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={sendData}
+          activeOpacity={0.5}>
           <Text style={styles.buttonText}>Сохранить</Text>
-        </Pressable>
-        <Pressable
+        </TouchableOpacity>
+        <TouchableOpacity
           style={styles.deleteButton}
-          onPress={() => {
-            handlerFile(null);
-            handlerName('');
-            handlerNumber(null);
-            handlerPrice(null);
-          }}>
+          onPress={clearfields}
+          activeOpacity={0.5}>
           <Text style={styles.buttonText}>Отмена</Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
     </>
   );

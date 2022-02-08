@@ -18,7 +18,7 @@ const createProduct = async req => {
     const foundEl = await findProduct(el);
     if (foundEl) {
       console.log(`This name ${foundEl.name} already exists`);
-      return {status: 200, error: `This name ${el.name} already exists`};
+      return {status: 200, error: `Такое имя ${el.name} уже существует`};
     }
 
     const newProduct = new product({...el});

@@ -55,13 +55,13 @@ const TakeImage = ({handler, closeDialog, dialog}) => {
   // };
   const selectFile = async () => {
     // Opening Document Picker to select one file
-    console.log('SELECT FILE !!!!');
+    // console.log('SELECT FILE !!!!');
     try {
       const res = await DocumentPicker.pick({
         type: [DocumentPicker.types.images],
       });
       // Printing the log realted to the file
-      console.log('res : ' + JSON.stringify(res[0]));
+      // console.log('res : ' + JSON.stringify(res[0]));
       // Setting the state to show single file attributes
       handler(res[0]);
     } catch (err) {
