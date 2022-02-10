@@ -1,12 +1,7 @@
 const product = require('../models/productModel');
 const uploadFile = require('../uploadByMulter');
 
-const {
-  getFileInfo,
-  deleteFile,
-  renameFile,
-  resizeImage,
-} = require('./handleFile');
+const {handleFile, deleteFiles} = require('./handleFile');
 
 const findProduct = async el => {
   try {
@@ -17,13 +12,11 @@ const findProduct = async el => {
   }
 };
 
-const findImage = async img => {
-  try {
-    const result = await product.findOne({img});
-    return result;
-  } catch (e) {
-    console.log(e);
-  }
+const validateFields = el => {
+  const {number, price} = el;
+  const parseNum = parseInt(number) || 0;
+  const parsePrice = parseFloat(price) || 0;
+  return {...el, number: parseNum, price: parsePrice};
 };
 
 const createProduct = async el => {
@@ -34,12 +27,13 @@ const createProduct = async el => {
       return {status: 200, error: `Такое имя ${el.name} уже существует`};
     }
 
-    const newProduct = new product({...el});
+    const validatedEl = validateFields(el);
+    const newProduct = new product(validatedEl);
     await newProduct.save(err => {
       if (err) throw err;
     });
 
-    return {status: 200, error: false};
+    return {status: 200, error: false, product: newProduct};
   } catch (e) {
     return {status: 404, error: e.message};
   }
@@ -49,24 +43,16 @@ const handleProduct = async (req, res) => {
   uploadFile(req, res, async err => {
     if (err) res.json({status: 200, error: err});
 
-    const fileInfo = getFileInfo(req);
+    const fileName = req.file ? await handleFile(req) : process.env.NONE_IMAGE;
 
-    const foundImage = await findImage(fileInfo.hashFullFilename);
-    if (foundImage) {
-      deleteFile(fileInfo.oldImgUrl);
-    } else {
-      await resizeImage(fileInfo.oldImgUrl, fileInfo.smallImgUrl);
-      renameFile(fileInfo.oldImgUrl, fileInfo.newImgUrl);
-    }
-
-    const el = {...req.body, img: fileInfo.hashFullFilename};
+    const el = {...req.body, img: fileName};
 
     const result = await createProduct(el);
     res.json({...result});
 
-    if (result.error) {
+    if (result.error && req.file) {
       console.log(result.error);
-      deleteFile(fileInfo.hashFullFilename);
+      deleteFiles(fileName);
     }
   });
 };

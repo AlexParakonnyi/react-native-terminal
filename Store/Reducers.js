@@ -5,9 +5,9 @@ const Reducers = (state, action) => {
   switch (action.type) {
     case Actions.CREATE_PRODUCT:
       // console.log('$$$', Actions.CREATE_PRODUCT);
-      return {...state, createdProduct: true};
+      return {...state, createdProduct: action?.payload?.productId};
     case Actions.REMOVE_CREATE_PRODUCT:
-      return {...state, createdProduct: false};
+      return {...state, createdProduct: null};
     default:
       return state;
   }

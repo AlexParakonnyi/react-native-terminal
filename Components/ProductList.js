@@ -11,13 +11,14 @@ const ProductList = () => {
   const {state, dispatch} = useContext(DataContext);
   const {createdProduct} = state;
   const flatListRef = useRef(null);
-  // console.log('@@', createdProduct);
 
   const fetchData = async () => {
     try {
       const res = await getData(`${URL}/api/product`, TOKEN);
-      // console.log(res.products);
-      if (res.products) setData(res.products);
+      if (res.products) {
+        setData(res.products);
+        return res.products;
+      }
     } catch (err) {
       console.log(err);
     }
@@ -27,19 +28,7 @@ const ProductList = () => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    if (createdProduct) {
-      fetchData();
-      if (data.length > 7) {
-        const index = Math.floor((data.length - 1) / 3) - 1;
-        flatListRef.current.scrollToIndex({index});
-      }
-      dispatch({type: Actions.REMOVE_CREATE_PRODUCT, payload: {}});
-    }
-  }, [createdProduct]);
-
   const handleClick = item => {
-    // console.log(item);
     const newArrayData = data.map(e => {
       if (e._id === item._id) {
         const currentSelected = item.selected;
@@ -51,6 +40,38 @@ const ProductList = () => {
     setData(newArrayData);
   };
 
+  useEffect(() => {
+    if (!createdProduct) return;
+
+    (async function () {
+      const newData = await fetchData();
+
+      newData.forEach((item, index) => {
+        if (item._id !== createdProduct) return;
+
+        const toRow = Math.floor(index / 3);
+        flatListRef.current.scrollToIndex({animated: true, index: toRow});
+      });
+
+      dispatch({type: Actions.REMOVE_CREATE_PRODUCT, payload: {}});
+    })();
+  }, [createdProduct]);
+
+  const failedScrollHandler = error => {
+    flatListRef.current.scrollToOffset({
+      offset: error.averageItemLength * error.index,
+      animated: true,
+    });
+    setTimeout(() => {
+      if (data.length !== 0 && flatListRef.current !== null) {
+        flatListRef.current.scrollToIndex({
+          index: error.index,
+          animated: true,
+        });
+      }
+    }, 100);
+  };
+
   return (
     <View>
       <FlatList
@@ -60,7 +81,8 @@ const ProductList = () => {
         data={data}
         renderItem={item => (
           <ProductItem item={item} handleClick={handleClick} />
-        )}></FlatList>
+        )}
+        onScrollToIndexFailed={failedScrollHandler}></FlatList>
     </View>
   );
 };

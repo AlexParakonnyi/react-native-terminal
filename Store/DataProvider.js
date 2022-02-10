@@ -1,11 +1,10 @@
 import React, {createContext, useReducer} from 'react';
-import Actions from './Actions';
 import reducers from './Reducers';
 
 export const DataContext = createContext();
 
 const DataProvider = ({children}) => {
-  const initialState = {createdProduct: false};
+  const initialState = {createdProduct: null};
   const [state, dispatch] = useReducer(reducers, initialState);
 
   return (

@@ -1,20 +1,14 @@
 import React, {useState, useEffect, useContext} from 'react';
-import {
-  StyleSheet,
-  Text,
-  Pressable,
-  TouchableOpacity,
-  View,
-  Image,
-} from 'react-native';
-import Toast from './Toast';
-import InputBlock from './InputBlock';
-import TakeImage from './TakeImage';
-import {TOKEN, URL} from '../.env.js';
-import {DataContext} from '../Store/DataProvider';
-import Actions from '../Store/Actions';
+import {Text, TouchableOpacity, View, Image} from 'react-native';
+import Toast from '../Toast';
+import InputBlock from '../InputBlock';
+import TakeImage from '../TakeImage';
+import {TOKEN, URL} from '../../.env.js';
+import {DataContext} from '../../Store/DataProvider';
+import Actions from '../../Store/Actions';
+import styles from './styles';
 
-const CreateProduct = ({pagerViewRef}) => {
+const ProductCard = ({pagerViewRef}) => {
   const [name, setName] = useState('');
   const [number, setNumber] = useState(null);
   const [price, setPrice] = useState(null);
@@ -28,7 +22,8 @@ const CreateProduct = ({pagerViewRef}) => {
 
   useEffect(() => handleToast, [visibleToast]);
 
-  const handleVisibleToast = () => {
+  const showToast = message => {
+    setToastMessage(message);
     setVisibleToast(true);
   };
 
@@ -63,52 +58,59 @@ const CreateProduct = ({pagerViewRef}) => {
     handlerFile(null);
   };
 
-  const setCreateProduct = () => {
-    dispatch({type: Actions.CREATE_PRODUCT, payload: {}});
+  const setCreateProduct = product => {
+    dispatch({
+      type: Actions.CREATE_PRODUCT,
+      payload: {productId: product?._id},
+    });
+  };
+
+  const validateName = value => {
+    if (!value || !value.length) return false;
+    return true;
   };
 
   const sendData = async () => {
-    // console.log('SENDING', singleFile != null);
-    // // Check if any file is selected or not
-    if (singleFile != null) {
-      //   // If file selected then create FormData
-      const data = new FormData();
+    if (!validateName(name)) {
+      showToast('Наименование не может быть пустым');
+      return;
+    }
 
-      const image = {
-        uri: singleFile.uri,
-        type: singleFile.type,
-        name: singleFile.name,
-      };
+    const data = new FormData();
 
-      data.append('name', name);
-      data.append('number', number);
-      data.append('price', price);
-      data.append('image', image);
+    const image = {
+      uri: singleFile?.uri,
+      type: singleFile?.type,
+      name: singleFile?.name,
+    };
 
-      let res = await fetch(`${URL}/api/product`, {
-        method: 'post',
-        body: data,
-        headers: {
-          token: TOKEN,
-        },
-      });
+    data.append('name', name);
+    data.append('number', number);
+    data.append('price', price);
 
-      let responseJson = await res.json();
-      if (responseJson.error) {
-        console.log(responseJson.error);
-        setToastMessage(responseJson.error);
-        handleVisibleToast();
-      } else if (responseJson.status == 200) {
-        console.log('Upload Successful');
-        setToastMessage('Товар успешно сохранен');
-        handleVisibleToast();
-        clearfields();
-        setCreateProduct();
-        pagerViewRef.current?.setPage(0);
-      }
-    } else {
-      //   // If no file selected the show alert
-      console.log('Please Select File first');
+    singleFile && data.append('image', image);
+
+    const res = await fetch(`${URL}/api/product`, {
+      method: 'post',
+      body: data,
+      headers: {
+        token: TOKEN,
+      },
+    });
+
+    const respObj = await res.json();
+    const toastMessage = respObj.error
+      ? respObj.error
+      : 'Товар успешно сохранен';
+
+    console.log(respObj);
+
+    showToast(toastMessage);
+
+    if (respObj?.status === 200) {
+      clearfields();
+      setCreateProduct(respObj?.product);
+      pagerViewRef.current?.setPage(0);
     }
   };
 
@@ -194,69 +196,4 @@ const CreateProduct = ({pagerViewRef}) => {
   );
 };
 
-const styles = StyleSheet.create({
-  header: {
-    fontSize: 24,
-    width: '100%',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    paddingTop: 10,
-  },
-  button: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 8,
-    elevation: 3,
-    backgroundColor: 'darkcyan',
-    minWidth: 200,
-  },
-  buttonText: {
-    fontSize: 16,
-    lineHeight: 21,
-    fontWeight: 'bold',
-    letterSpacing: 0.25,
-    color: 'white',
-  },
-  panelControl: {
-    flexDirection: 'row',
-    paddingTop: 15,
-    paddingBottom: 10,
-    paddingHorizontal: 10,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-    // borderWidth: 1,
-    // borderColor: 'black',
-  },
-  addImage: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 8,
-    elevation: 3,
-    backgroundColor: 'darkcyan',
-  },
-  deleteButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 8,
-    elevation: 3,
-    backgroundColor: 'indianred',
-  },
-  imageView: {
-    flex: 1,
-    padding: 10,
-  },
-  image: {
-    width: 300,
-    height: 300,
-    borderRadius: 25,
-  },
-});
-
-export default CreateProduct;
+export default ProductCard;

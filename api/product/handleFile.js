@@ -2,6 +2,15 @@ const path = require('path');
 const fs = require('fs');
 const getHash = require('../utils/getHash');
 const sharp = require('sharp');
+const product = require('../models/productModel');
+
+const getSmallImage = name => {
+  return path.resolve(__dirname, '../', process.env.SMALL_IMAGES_PATH, name);
+};
+
+const getOriginalImage = name => {
+  return path.resolve(__dirname, '../', process.env.ORIGINAL_IMAGES_PATH, name);
+};
 
 const getFileInfo = req => {
   const oldImgUrl = path.resolve(
@@ -17,19 +26,9 @@ const getFileInfo = req => {
 
   const hashFullFilename = `${hashFilename}${fileExt}`;
 
-  const newImgUrl = path.resolve(
-    __dirname,
-    '../',
-    process.env.ORIGINAL_IMAGES_PATH,
-    hashFullFilename,
-  );
+  const newImgUrl = getOriginalImage(hashFullFilename);
 
-  const smallImgUrl = path.resolve(
-    __dirname,
-    '../',
-    process.env.SMALL_IMAGES_PATH,
-    hashFullFilename,
-  );
+  const smallImgUrl = getSmallImage(hashFullFilename);
 
   return {
     oldImgUrl,
@@ -41,9 +40,12 @@ const getFileInfo = req => {
   };
 };
 
-const deleteFile = file => {
-  fs.unlink(file, err => {
-    if (err) console.log('Error inside unlink', err);
+const deleteFiles = name => {
+  const arrPath = [getSmallImage(name), getOriginalImage(name)];
+  arrPath.forEach(file => {
+    fs.unlink(file, err => {
+      if (err) console.log('Error inside unlink', err.message);
+    });
   });
 };
 
@@ -61,4 +63,33 @@ const resizeImage = async (file, newFileName) => {
   await sharp(file).resize(200).toFile(newFileName);
 };
 
-module.exports = {getFileInfo, deleteFile, renameFile, resizeImage};
+const findImage = async img => {
+  try {
+    const result = await product.findOne({img});
+    return result;
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+const handleFile = async req => {
+  const fileInfo = getFileInfo(req);
+  const foundImage = await findImage(fileInfo.hashFullFilename);
+  // console.log('@@@', foundImage);
+  if (foundImage) {
+    deleteFiles(fileInfo.oldImgUrl);
+  } else {
+    await resizeImage(fileInfo.oldImgUrl, fileInfo.smallImgUrl);
+    renameFile(fileInfo.oldImgUrl, fileInfo.newImgUrl);
+  }
+
+  return fileInfo.hashFullFilename;
+};
+
+module.exports = {
+  handleFile,
+  getFileInfo,
+  deleteFiles,
+  renameFile,
+  resizeImage,
+};

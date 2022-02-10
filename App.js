@@ -2,7 +2,7 @@ import React, {useRef} from 'react';
 import {StyleSheet, View, StatusBar} from 'react-native';
 import Header from './Components/Header';
 import PagerView from 'react-native-pager-view';
-import CreateProduct from './Components/CreateProduct';
+import ProductCard from './Components/ProductCard';
 import ProductList from './Components/ProductList';
 import DataProvider from './Store/DataProvider';
 
@@ -18,7 +18,7 @@ export default function App() {
             <ProductList />
           </View>
           <View key="1" style={styles.container} collapsable="false">
-            <CreateProduct pagerViewRef={pagerViewRef} />
+            <ProductCard pagerViewRef={pagerViewRef} />
           </View>
         </PagerView>
       </DataProvider>
