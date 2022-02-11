@@ -5,6 +5,7 @@ import PagerView from 'react-native-pager-view';
 import ProductCard from './Components/ProductCard';
 import ProductList from './Components/ProductList';
 import DataProvider from './Store/DataProvider';
+import TestLayout from './Components/TestLayout';
 
 export default function App() {
   const pagerViewRef = useRef(null);
@@ -19,6 +20,9 @@ export default function App() {
           </View>
           <View key="1" style={styles.container} collapsable="false">
             <ProductCard pagerViewRef={pagerViewRef} />
+          </View>
+          <View key="2" style={styles.container} collapsable="false">
+            <TestLayout />
           </View>
         </PagerView>
       </DataProvider>

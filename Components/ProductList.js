@@ -1,16 +1,23 @@
 import React, {useEffect, useState, useContext, useRef} from 'react';
-import {View, FlatList} from 'react-native';
+import {View, FlatList, Text} from 'react-native';
 import {TOKEN, URL} from '../.env.js';
 import ProductItem from './ProductItem.js';
 import {getData} from '../utils/fetchData';
 import {DataContext} from '../Store/DataProvider.js';
 import Actions from '../Store/Actions.js';
+import ModalPoup from './Modal.js';
+import DialogChangeDelete from './DialogChangeDelete';
 
 const ProductList = () => {
   const [data, setData] = useState([]);
   const {state, dispatch} = useContext(DataContext);
-  const {createdProduct} = state;
+  const {createdProduct, currentProductId} = state;
   const flatListRef = useRef(null);
+  const [showModal, setShowModal] = useState(false);
+
+  const toggleVisible = () => {
+    setShowModal(prev => !prev);
+  };
 
   const fetchData = async () => {
     try {
@@ -72,15 +79,27 @@ const ProductList = () => {
     }, 100);
   };
 
+  const handleLongPress = item => {
+    setShowModal(true);
+
+    dispatch({
+      type: Actions.CURRENT_PRODUCT,
+      payload: {currentProductId: item?._id},
+    });
+  };
+
   return (
     <View>
+      <ModalPoup visible={showModal}>
+        <DialogChangeDelete handleClick={toggleVisible} />
+      </ModalPoup>
       <FlatList
         ref={flatListRef}
         numColumns={3}
         keyExtractor={item => item._id}
         data={data}
         renderItem={item => (
-          <ProductItem item={item} handleClick={handleClick} />
+          <ProductItem item={item} handleClick={handleLongPress} />
         )}
         onScrollToIndexFailed={failedScrollHandler}></FlatList>
     </View>

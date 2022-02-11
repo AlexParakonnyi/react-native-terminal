@@ -8,6 +8,8 @@ const Reducers = (state, action) => {
       return {...state, createdProduct: action?.payload?.productId};
     case Actions.REMOVE_CREATE_PRODUCT:
       return {...state, createdProduct: null};
+    case Actions.CURRENT_PRODUCT:
+      return {...state, currentProductId: action?.payload?.currentProductId};
     default:
       return state;
   }

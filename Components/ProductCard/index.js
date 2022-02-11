@@ -103,8 +103,6 @@ const ProductCard = ({pagerViewRef}) => {
       ? respObj.error
       : 'Товар успешно сохранен';
 
-    console.log(respObj);
-
     showToast(toastMessage);
 
     if (respObj?.status === 200) {
