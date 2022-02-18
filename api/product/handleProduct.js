@@ -1,5 +1,6 @@
 const product = require('../models/productModel');
-const uploadFile = require('../uploadByMulter');
+const uploadFile = require('../utils/uploadByMulter');
+const validateFields = require('../utils/vaalidateFields');
 
 const {handleFile, deleteFiles} = require('./handleFile');
 
@@ -10,13 +11,6 @@ const findProduct = async el => {
   } catch (e) {
     console.log(e);
   }
-};
-
-const validateFields = el => {
-  const {number, price} = el;
-  const parseNum = parseInt(number) || 0;
-  const parsePrice = parseFloat(price) || 0;
-  return {...el, number: parseNum, price: parsePrice};
 };
 
 const createProduct = async el => {

@@ -80,7 +80,7 @@ const handleFile = async req => {
     deleteFiles(fileInfo.oldImgUrl);
   } else {
     await resizeImage(fileInfo.oldImgUrl, fileInfo.smallImgUrl);
-    renameFile(fileInfo.oldImgUrl, fileInfo.newImgUrl);
+    renameFile(fileInfo.oldImgUrl, fileInfo.newImgUrl); //rename original file
   }
 
   return fileInfo.hashFullFilename;

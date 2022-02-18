@@ -1,68 +1,58 @@
 import React, {useEffect, useState, useContext, useRef} from 'react';
-import {View, FlatList, Text} from 'react-native';
-import {TOKEN, URL} from '../.env.js';
+import {View, FlatList, Button} from 'react-native';
 import ProductItem from './ProductItem.js';
 import {getData} from '../utils/fetchData';
 import {DataContext} from '../Store/DataProvider.js';
 import Actions from '../Store/Actions.js';
-import ModalPoup from './Modal.js';
-import DialogChangeDelete from './DialogChangeDelete';
+import Config from '../.env.js';
 
-const ProductList = () => {
+const ProductList = ({navigation}) => {
   const [data, setData] = useState([]);
   const {state, dispatch} = useContext(DataContext);
-  const {createdProduct, currentProductId} = state;
+  const {createdProduct, currentProduct} = state;
   const flatListRef = useRef(null);
-  const [showModal, setShowModal] = useState(false);
+  const [isRender, setIsRender] = useState(false);
 
-  const toggleVisible = () => {
-    setShowModal(prev => !prev);
+  const scrollToCreatedItem = dataList => {
+    if (!createdProduct) return;
+
+    dataList.forEach((item, index) => {
+      if (item._id !== createdProduct) return;
+
+      const toRow = Math.floor(index / 3);
+      flatListRef.current.scrollToIndex({animated: true, index: toRow});
+    });
+
+    dispatch({type: Actions.REMOVE_CREATE_PRODUCT, payload: {}});
   };
 
-  const fetchData = async () => {
+  const getProductList = async () => {
     try {
-      const res = await getData(`${URL}/api/product`, TOKEN);
+      const res = await getData({path: `/api/products`});
       if (res.products) {
         setData(res.products);
+        scrollToCreatedItem(res.products);
+
         return res.products;
       }
     } catch (err) {
       console.log(err);
+    } finally {
     }
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleClick = item => {
-    const newArrayData = data.map(e => {
-      if (e._id === item._id) {
-        const currentSelected = item.selected;
-        return {...e, selected: !currentSelected};
-      }
-      return {...e, selected: false};
-    });
-
-    setData(newArrayData);
-  };
+    setIsRender(!isRender);
+  }, [data]);
 
   useEffect(() => {
     if (!createdProduct) return;
-
-    (async function () {
-      const newData = await fetchData();
-
-      newData.forEach((item, index) => {
-        if (item._id !== createdProduct) return;
-
-        const toRow = Math.floor(index / 3);
-        flatListRef.current.scrollToIndex({animated: true, index: toRow});
-      });
-
-      dispatch({type: Actions.REMOVE_CREATE_PRODUCT, payload: {}});
-    })();
+    getProductList();
   }, [createdProduct]);
+
+  useEffect(() => {
+    getProductList();
+  }, []);
 
   const failedScrollHandler = error => {
     flatListRef.current.scrollToOffset({
@@ -79,29 +69,39 @@ const ProductList = () => {
     }, 100);
   };
 
-  const handleLongPress = item => {
-    setShowModal(true);
+  const handleClick = item => {
+    const {_id, name, description, number, price, img} = item;
 
-    dispatch({
-      type: Actions.CURRENT_PRODUCT,
-      payload: {currentProductId: item?._id},
-    });
+    const productItem = {
+      _id,
+      name,
+      description,
+      number,
+      price,
+      imageFile: {
+        uri: `${Config.BASE_URL}${Config.SMALL_IMAGE_PATH}${img}`,
+      },
+    };
+
+    navigation.navigate('ProductCard', {product: productItem});
   };
+
+  const renderItem = item => (
+    <ProductItem item={item} handleClick={handleClick} key={item._id} />
+  );
 
   return (
     <View>
-      <ModalPoup visible={showModal}>
-        <DialogChangeDelete handleClick={toggleVisible} />
-      </ModalPoup>
       <FlatList
         ref={flatListRef}
         numColumns={3}
-        keyExtractor={item => item._id}
+        keyExtractor={item => item._id.toString()}
         data={data}
-        renderItem={item => (
-          <ProductItem item={item} handleClick={handleLongPress} />
-        )}
-        onScrollToIndexFailed={failedScrollHandler}></FlatList>
+        initialNumToRender={16}
+        renderItem={renderItem}
+        onScrollToIndexFailed={failedScrollHandler}
+        extraData={isRender}
+      />
     </View>
   );
 };

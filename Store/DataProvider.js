@@ -4,7 +4,20 @@ import reducers from './Reducers';
 export const DataContext = createContext();
 
 const DataProvider = ({children}) => {
-  const initialState = {createdProduct: null, currentProductId: null};
+  const initialState = {
+    createdProduct: null,
+    currentProduct: null,
+    showToast: false,
+    toastMessage: '',
+    showDialog: false,
+    product: {
+      name: '',
+      description: '',
+      number: null,
+      price: null,
+      imageFile: null,
+    },
+  };
   const [state, dispatch] = useReducer(reducers, initialState);
 
   return (

@@ -6,6 +6,8 @@ const DialogChangeDelete = ({handleClick}) => {
   const {state, dispatch} = useContext(DataContext);
   const {currentProductId} = state;
 
+  const deleteElement = async () => {};
+
   return (
     <View>
       <View style={{alignItems: 'center'}}>
@@ -26,7 +28,7 @@ const DialogChangeDelete = ({handleClick}) => {
         <Text style={{fontSize: 22, fontWeight: 'bold'}}>Изменить</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.dialogItem}>
+      <TouchableOpacity style={styles.dialogItem} onPress={cc}>
         <Image
           source={require('../assets/remove.png')}
           style={styles.dialogItemImage}

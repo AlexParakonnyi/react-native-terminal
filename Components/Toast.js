@@ -1,10 +1,20 @@
-import React from 'react';
+import React, {useContext, useEffect} from 'react';
 import {ToastAndroid} from 'react-native';
+import {DataContext} from '../Store/DataProvider';
+import Actions from '../Store/Actions';
 
-const Toast = ({visible, message}) => {
-  if (visible) {
+const Toast = () => {
+  const {state, dispatch} = useContext(DataContext);
+  const {showToast, toastMessage} = state;
+
+  useEffect(() => {
+    if (!showToast) return;
+    dispatch({type: Actions.CLEAR_TOAST});
+  }, [showToast]);
+
+  if (showToast) {
     ToastAndroid.showWithGravity(
-      message,
+      toastMessage,
       ToastAndroid.LONG,
       ToastAndroid.CENTER,
     );

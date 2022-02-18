@@ -1,7 +1,7 @@
 import React from 'react';
 import {Text, View, TextInput, StyleSheet} from 'react-native';
 
-const InputBlock = ({name, number, value, handler}) => {
+const InputBlock = ({name, number, value = '', handler}) => {
   return (
     <View style={styles.inputBlock}>
       <Text style={styles.text}>{`${name}: `} </Text>
@@ -9,8 +9,8 @@ const InputBlock = ({name, number, value, handler}) => {
         placeholder={name}
         keyboardType={number ? 'numeric' : 'default'}
         style={styles.inputText}
-        onChangeText={value => handler(value)}
-        defaultValue={value}></TextInput>
+        onChangeText={val => handler(val)}
+        defaultValue={value ? String(value) : null}></TextInput>
     </View>
   );
 };
